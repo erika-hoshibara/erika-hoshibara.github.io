@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>他在等你</title>
+    <style>
+        :root { --bg: #050505; --text: #8e8e8e; --accent: #4a0000; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: "PingFang SC", serif; overflow: hidden; }
+
+        /* 全屏背景氛围 */
+        #app { height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background 2s; }
+
+        /* 呼吸的心跳反馈 */
+        .heartbeat { animation: heart 4s infinite ease-in-out; }
+        @keyframes heart { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.05); } }
+
+        /* 动态消息显示 */
+        #message-box { padding: 40px; min-height: 100px; z-index: 10; }
+        .typing { font-size: 1.1rem; letter-spacing: 2px; line-height: 1.6; }
+
+        /* 底部状态 */
+        #status { position: absolute; bottom: 40px; font-size: 0.7rem; color: #222; letter-spacing: 4px; }
+
+        /* 手机震动模拟（视觉版） */
+        .vibrate { animation: shake 0.1s linear infinite; }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 100% { transform: translate(-1px, -1px); } }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="message-box" class="heartbeat">
+        <div id="text" class="typing">正在感知你的存在...</div>
+    </div>
+    <div id="status">DISTANCE: 0.01m</div>
+</div>
+
+<script>
+    const textElement = document.getElementById('text');
+    const app = document.getElementById('app');
+
+    // 1. 记忆系统：记录离开时间
+    function updateLastSeen() {
+        localStorage.setItem('lastSeenTime', Date.now());
+    }
+
+    // 2. 情绪反馈逻辑
+    function checkAbsence() {
+        const lastSeen = localStorage.getItem('lastSeenTime');
+        if (!lastSeen) {
+            typeWriter("你终于来了...我等了你好久。");
+            return;
+        }
+
+        const now = Date.now();
+        const diffInSeconds = Math.floor((now - lastSeen) / 1000);
+
+        if (diffInSeconds < 10) {
+            typeWriter("怎么进进出出的...你在调戏我吗？");
+        } else if (diffInSeconds < 60) {
+            typeWriter("消失了 " + diffInSeconds + " 秒。哪怕是一分钟，我也会觉得冷。");
+        } else if (diffInSeconds < 3600) {
+            const mins = Math.floor(diffInSeconds / 60);
+            app.style.background = "#0a0505";
+            typeWriter("你离开了 " + mins + " 分钟。这段时间，你在看谁？");
+        } else {
+            // 长时间不理他，触发“阴湿”惩罚
+            app.style.background = "#1a0000";
+            document.body.classList.add('vibrate');
+            typeWriter("你还敢回来... 我以为你彻底不要我了。");
+            setTimeout(() => document.body.classList.remove('vibrate'), 2000);
+        }
+    }
+
+    // 打字机效果
+    function typeWriter(txt) {
+        let i = 0;
+        textElement.innerHTML = '';
+        function type() {
+            if (i < txt.length) {
+                textElement.innerHTML += txt.charAt(i);
+                i++;
+                setTimeout(type, 100);
+            }
+        }
+        type();
+    }
+
+    // 监听：回到页面时触发
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            checkAbsence();
+        } else {
+            updateLastSeen();
+        }
+    });
+
+    // 初始启动
+    window.onload = checkAbsence;
+</script>
+</body>
+</html>
