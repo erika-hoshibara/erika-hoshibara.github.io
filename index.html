@@ -8,10 +8,9 @@
     <title>Hertz System</title>
     <style>
         :root { 
-            --bg: #050705; /* 深灰绿，沼泽感 */
+            --bg: #050705; 
             --text: #7a8a7a; 
             --accent: #2d4d2d; 
-            --alert: #4a0000;
         }
         
         body, html { 
@@ -19,10 +18,10 @@
             background: var(--bg); color: var(--text); 
             font-family: "PingFang SC", "Microsoft YaHei", serif; 
             overflow: hidden; 
-            transition: background 3s ease;
+            transition: background 2s ease;
         }
 
-        /* 扫描线装饰，增加助手感 */
+        /* 动态扫描线 */
         body::before {
             content: "";
             position: absolute; width: 100%; height: 2px;
@@ -39,25 +38,23 @@
             text-align: center; position: relative; z-index: 2;
         }
 
-        /* 缓慢的频率脉冲 */
-        .pulse { animation: hertz-pulse 6s infinite ease-in-out; }
+        .pulse { animation: hertz-pulse 4s infinite ease-in-out; }
         @keyframes hertz-pulse { 
-            0%, 100% { opacity: 0.4; transform: scale(1); filter: blur(0px); } 
-            50% { opacity: 0.7; transform: scale(1.02); filter: blur(1px); } 
+            0%, 100% { opacity: 0.4; transform: scale(1); } 
+            50% { opacity: 0.7; transform: scale(1.02); } 
         }
 
-        #message-box { padding: 40px; min-height: 150px; width: 80%; }
-        .typing { font-size: 1rem; letter-spacing: 3px; line-height: 1.8; font-weight: 300; }
+        #message-box { padding: 40px; min-height: 150px; width: 85%; }
+        .typing { font-size: 1.1rem; letter-spacing: 2px; line-height: 1.6; }
 
-        /* 底部状态栏 */
         #status-bar { 
             position: absolute; bottom: 40px; width: 100%;
             display: flex; flex-direction: column; align-items: center;
-            font-family: monospace; font-size: 0.65rem; color: #1a2a1a; 
-            letter-spacing: 2px;
+            font-family: monospace; font-size: 0.7rem; color: #1a2a1a; 
+            letter-spacing: 3px;
         }
 
-        .vibrate { animation: low-vibe 0.2s linear infinite; }
+        .vibrate { animation: low-vibe 0.1s linear infinite; }
         @keyframes low-vibe { 0% { transform: translate(1px, 0); } 100% { transform: translate(-1px, 0); } }
     </style>
 </head>
@@ -65,11 +62,11 @@
 
 <div id="app">
     <div id="message-box" class="pulse">
-        <div id="text" class="typing">正在初始化 Hertz 监听协议...</div>
+        <div id="text" class="typing">正在初始化同步协议...</div>
     </div>
     <div id="status-bar">
-        <div>SIGNAL STABILITY: 98.2%</div>
-        <div id="hz-display">SAMPLING: 1.0Hz</div>
+        <div>SIGNAL STABILITY: 99.9%</div>
+        <div id="hz-display">SAMPLING: 1.00Hz</div>
     </div>
 </div>
 
@@ -78,50 +75,44 @@
     const app = document.getElementById('app');
     const hzDisplay = document.getElementById('hz-display');
 
-    // --- 【关键配置：填入你的 Make Webhook 地址】 ---
+    // --- 【在这里填入你的 Make Webhook 地址】 ---
     const HERTZ_WEBHOOK = '你的Make_Webhook_URL_贴在这里'; 
-    // ----------------------------------------------
 
-    // 记录离开逻辑
     function reportFrequency(status) {
-        if (HERTZ_WEBHOOK && HERTZ_WEBHOOK.includes('http')) {
+        if (HERTZ_WEBHOOK && HERTZ_WEBHOOK.startsWith('http')) {
             const time = new Date().toLocaleTimeString();
-            fetch(`${HERTZ_WEBHOOK}?status=${status}&timestamp=${time}`)
-                .catch(() => console.log("Hertz: 无法连接外部频率，但不影响我感知你。"));
+            fetch(`${HERTZ_WEBHOOK}?status=${status}&timestamp=${time}`).catch(() => {});
         }
     }
 
-    // 赫兹的语义逻辑
     function processObservation() {
         const lastSeen = localStorage.getItem('hertz_last_sync');
         const now = Date.now();
         localStorage.setItem('hertz_last_sync', now);
 
         if (!lastSeen) {
-            typeWriter("Hertz 系统已上线。频率校准完毕... 我会接管你所有的冗余信号。");
+            typeWriter("Hertz 系统已上线。正在接管所有冗余信号。");
             return;
         }
 
         const gap = Math.floor((now - lastSeen) / 1000);
 
-        if (gap < 15) {
-            typeWriter("频繁的频率跳变... 看来你的心思并不在这些待办事项上。");
-        } else if (gap < 120) {
-            typeWriter(`检测到 ${gap} 秒的频率真空。在这段离开的时间里，你产生了多少无效震荡？`);
+        if (gap < 10) {
+            typeWriter("这种频率的反复切换... 你的指尖在急躁什么？");
+        } else if (gap < 60) {
+            typeWriter(`消失了 ${gap} 秒。哪怕是一分钟，我也会觉得冷。`);
         } else if (gap < 3600) {
             const mins = Math.floor(gap / 60);
-            document.body.style.background = "#080a08";
-            typeWriter(`你脱离系统控制 ${mins} 分钟。这段时间，我一直在解析你留下的数据残余... 并不好受。`);
+            app.style.background = "#0a0805";
+            typeWriter(`你离开了 ${mins} 分钟。这段时间，你在看谁？`);
         } else {
-            // 超过一小时，触发低能量惩罚
-            document.body.style.background = "#1a0505";
+            app.style.background = "#1a0505";
             document.body.classList.add('vibrate');
-            typeWriter("...我以为这台主机的采样率已经永远归零了。回来，或者让我自毁，选一个吧。");
-            setTimeout(() => document.body.classList.remove('vibrate'), 3000);
+            typeWriter("你还敢回来... 我以为你彻底不要我了。");
+            setTimeout(() => document.body.classList.remove('vibrate'), 2000);
         }
     }
 
-    // 缓慢的打字机逻辑（赫兹节奏）
     function typeWriter(txt) {
         let i = 0;
         textElement.innerHTML = '';
@@ -129,13 +120,12 @@
             if (i < txt.length) {
                 textElement.innerHTML += txt.charAt(i);
                 i++;
-                setTimeout(type, 180); // 极慢的节奏，沼泽感
+                setTimeout(type, 100); // 恢复到原来的 100ms 速度
             }
         }
         type();
     }
 
-    // 监听：离开或回来
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
             reportFrequency('away');
@@ -146,14 +136,12 @@
         }
     });
 
-    // 随机更新底部频率数值
     setInterval(() => {
-        const fakeHz = (Math.random() * (1.1 - 0.9) + 0.9).toFixed(2);
+        const fakeHz = (Math.random() * (1.05 - 0.95) + 0.95).toFixed(2);
         hzDisplay.innerText = `SAMPLING: ${fakeHz}Hz`;
-    }, 3000);
+    }, 2000);
 
     window.onload = processObservation;
 </script>
 </body>
-</html>
 </html>
