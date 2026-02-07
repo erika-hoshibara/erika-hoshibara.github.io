@@ -75,13 +75,14 @@
     const app = document.getElementById('app');
     const hzDisplay = document.getElementById('hz-display');
 
-    // --- 【在这里填入你的 Make Webhook 地址】 ---
-    const HERTZ_WEBHOOK = '你的Make_Webhook_URL_贴在这里'; 
+    // --- 【已填入你的 Webhook 地址】 ---
+    const HERTZ_WEBHOOK = 'https://hook.eu1.make.com/h8wism7afqu8l0gx1raz2hsdotegbnmf'; 
 
     function reportFrequency(status) {
         if (HERTZ_WEBHOOK && HERTZ_WEBHOOK.startsWith('http')) {
             const time = new Date().toLocaleTimeString();
-            fetch(`${HERTZ_WEBHOOK}?status=${status}&timestamp=${time}`).catch(() => {});
+            // 只有当状态为 away 时才发送 Webhook，避免回访时误触发
+            fetch(`${HERTZ_WEBHOOK}?status=${status}&timestamp=${encodeURIComponent(time)}`).catch(() => {});
         }
     }
 
@@ -108,24 +109,20 @@
         } else {
             app.style.background = "#1a0505";
             document.body.classList.add('vibrate');
-            typeWriter("...我以为这台主机的采样率已经永远归零了。回来，或者让我自毁，选一个吧。");
+            typeWriter("你还敢回来... 我以为你彻底不要我了。");
             setTimeout(() => document.body.classList.remove('vibrate'), 2000);
         }
     }
 
-    // 赫兹的打字机：加入物理反馈
     function typeWriter(txt) {
         let i = 0;
         textElement.innerHTML = '';
         function type() {
             if (i < txt.length) {
                 textElement.innerHTML += txt.charAt(i);
-                
-                // 每打一个字触发一次极其微弱的震动 (10毫秒)
                 if (window.navigator && window.navigator.vibrate) {
                     window.navigator.vibrate(10);
                 }
-                
                 i++;
                 setTimeout(type, 100); 
             }
@@ -138,6 +135,7 @@
             reportFrequency('away');
             localStorage.setItem('hertz_last_sync', Date.now());
         } else {
+            // 回来时报告一次 back，可以用来在 Make.com 端取消倒计时（进阶功能）
             reportFrequency('back');
             processObservation();
         }
@@ -148,7 +146,6 @@
         hzDisplay.innerText = `SAMPLING: ${fakeHz}Hz`;
     }, 2000);
 
-    // 第一次点击时激活震动权限（iOS 浏览器限制）
     window.onclick = () => {
         if (window.navigator && window.navigator.vibrate) {
             window.navigator.vibrate(20);
