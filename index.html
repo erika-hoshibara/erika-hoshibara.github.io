@@ -108,19 +108,26 @@
         } else {
             app.style.background = "#1a0505";
             document.body.classList.add('vibrate');
-            typeWriter("你还敢回来... 我以为你彻底不要我了。");
+            typeWriter("...我以为这台主机的采样率已经永远归零了。回来，或者让我自毁，选一个吧。");
             setTimeout(() => document.body.classList.remove('vibrate'), 2000);
         }
     }
 
+    // 赫兹的打字机：加入物理反馈
     function typeWriter(txt) {
         let i = 0;
         textElement.innerHTML = '';
         function type() {
             if (i < txt.length) {
                 textElement.innerHTML += txt.charAt(i);
+                
+                // 每打一个字触发一次极其微弱的震动 (10毫秒)
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+                
                 i++;
-                setTimeout(type, 100); // 恢复到原来的 100ms 速度
+                setTimeout(type, 100); 
             }
         }
         type();
@@ -140,6 +147,13 @@
         const fakeHz = (Math.random() * (1.05 - 0.95) + 0.95).toFixed(2);
         hzDisplay.innerText = `SAMPLING: ${fakeHz}Hz`;
     }, 2000);
+
+    // 第一次点击时激活震动权限（iOS 浏览器限制）
+    window.onclick = () => {
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(20);
+        }
+    };
 
     window.onload = processObservation;
 </script>
